@@ -11,7 +11,8 @@
         "dist"
     ],
     "scripts": {
-        "dev": "tsx watch src/index.ts",
+        "dev": "tsx watch --env-file=.env src/index.ts",
+        "start": "tsx --env-file=.env src/index.ts",
         "build": "tsup",
         "prepublishOnly": "pnpm build",
         "format": "prettier --write \"./**/*.{js,jsx,ts,tsx,json,css,md}\""
@@ -33,12 +34,17 @@
     },
     "homepage": "https://github.com/rasulemin/next-scaffold#readme",
     "devDependencies": {
+        "@types/node": "^22.10.5",
         "prettier": "^3.7.4",
         "tsup": "^8.5.1",
         "tsx": "^4.21.0",
         "typescript": "^5.9.3"
     },
     "dependencies": {
-        "commander": "^14.0.2"
+        "chalk": "^5.6.2",
+        "commander": "^14.0.2",
+        "consola": "^3.4.2",
+        "execa": "^9.6.1",
+        "ora": "^9.0.0"
     }
 }
