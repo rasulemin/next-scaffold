@@ -1,0 +1,21 @@
+{
+    "name": "next-scaffold",
+    "version": "1.0.0",
+    "description": "A scaffolding tool for Next.js",
+    "main": "index.js",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/rasulemin/next-scaffold.git"
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "bugs": {
+        "url": "https://github.com/rasulemin/next-scaffold/issues"
+    },
+    "homepage": "https://github.com/rasulemin/next-scaffold#readme",
+    "type": "module"
+}
