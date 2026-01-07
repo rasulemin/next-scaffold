@@ -3,6 +3,7 @@ import { ensureNextJsProject } from './actions/ensure-nextjs-project'
 import { setupPrettier } from './commands/prettier/prettier.command'
 import { logger } from './lib/logger'
 import { access } from 'node:fs/promises'
+import { cleanUpPublicDir } from './commands/clean-up-public-dir.command'
 
 const nextJsProjectPathForTesting = process.env.NEXTJS_PROJECT_PATH || '.'
 
@@ -21,6 +22,7 @@ async function main() {
     try {
         await ensureNextJsProject({ cwd })
         await setupPrettier({ cwd })
+        await cleanUpPublicDir({ cwd })
     } catch (error) {
         logger.error('Setup Failed', { error })
         process.exit(1)

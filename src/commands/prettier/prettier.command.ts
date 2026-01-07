@@ -3,10 +3,10 @@ import { execa } from 'execa'
 import { constants, copyFile } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { createInterface } from 'node:readline/promises'
 import { isNodeError } from '../../lib/helpers'
 import { logger as _logger } from '../../lib/logger'
 import { hasPackage, readPackageJson, updatePackageJson } from '../../lib/package-json'
+import { confirmPrompt } from '../../lib/prompt'
 
 const logger = _logger.withTag('prettier-command')
 
@@ -120,16 +120,8 @@ async function _formatCodebase({
     packageManager: PM
 }): Promise<void> {
     try {
-        const rl = createInterface({
-            input: process.stdin,
-            output: process.stdout,
-        })
+        const shouldFormat = await confirmPrompt('Format the entire codebase now?')
 
-        const response = await rl.question('Format the entire codebase now? [Y/n]: ')
-        rl.close()
-
-        const yesses = ['y', 'yes', 'yep', 'yeah', 'yeeehhhaaaaa', 'ohyeah', 'sure', 'duh']
-        const shouldFormat = !response.trim() || yesses.includes(response.trim().toLowerCase())
         if (!shouldFormat) {
             logger.info(
                 'Skipping codebase formatting. Run the `format` script manually when ready.',
