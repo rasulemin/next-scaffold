@@ -1,4 +1,4 @@
-import { detect } from 'detect-package-manager'
+import { detect, PM } from 'detect-package-manager'
 import { execa } from 'execa'
 import { constants, copyFile } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
@@ -37,7 +37,13 @@ async function _copyConfigFile({ cwd }: { cwd: string }): Promise<void> {
     }
 }
 
-async function _ensurePrettierInstalled({ cwd }: { cwd: string }): Promise<void> {
+async function _ensurePrettierInstalled({
+    cwd,
+    packageManager,
+}: {
+    cwd: string
+    packageManager: PM
+}): Promise<void> {
     try {
         const packageJsonContents = await readPackageJson(cwd)
         if (hasPackage(packageJsonContents, 'prettier')) {
@@ -49,10 +55,9 @@ async function _ensurePrettierInstalled({ cwd }: { cwd: string }): Promise<void>
     }
 
     logger.info('Installing Prettier')
-    const pm = await detect({ cwd })
-    const action = pm === 'npm' ? 'install' : 'add'
+    const action = packageManager === 'npm' ? 'install' : 'add'
     try {
-        await execa(pm, [action, '-D', 'prettier'], { cwd })
+        await execa(packageManager, [action, '-D', 'prettier'], { cwd })
         logger.success('Prettier installed')
     } catch (error) {
         throw new Error('Failed to install Prettier', { cause: error })
@@ -91,9 +96,28 @@ async function _addFormatScriptToPackageJson({ cwd }: { cwd: string }): Promise<
     }
 }
 
+async function _formatCodebase({
+    cwd,
+    packageManager,
+}: {
+    cwd: string
+    packageManager: PM
+}): Promise<void> {
+    try {
+        logger.info('Formatting codebase...')
+        await execa(packageManager, ['run', 'format'], { cwd })
+        logger.success('Codebase formatted')
+    } catch (error) {
+        logger.error('Formatting error occurred', { error })
+        logger.warn('Failed to format codebase. You can run the `format` script manually.')
+    }
+}
+
 export async function setupPrettier({ cwd }: { cwd: string }): Promise<void> {
     logger.info('Setting up Prettier')
     await _copyConfigFile({ cwd })
-    await _ensurePrettierInstalled({ cwd })
+    const pm = await detect({ cwd })
+    await _ensurePrettierInstalled({ cwd, packageManager: pm })
     await _addFormatScriptToPackageJson({ cwd })
+    await _formatCodebase({ cwd, packageManager: pm })
 }
