@@ -4,6 +4,7 @@ import { ensureNextJsProject } from './actions/ensure-nextjs-project'
 import { cleanUpPublicDir } from './commands/clean-up-public-dir.command'
 import { setupEslint } from './commands/eslint/eslint.command'
 import { setupPrettier } from './commands/prettier/prettier.command'
+import { updateHomePage } from './commands/update-home-page'
 import { logger } from './lib/logger'
 import { warningPrompt } from './lib/warning-prompt'
 
@@ -32,6 +33,7 @@ async function main() {
         await setupPrettier({ cwd })
         await cleanUpPublicDir({ cwd })
         await setupEslint({ cwd })
+        await updateHomePage({ cwd })
     } catch (error) {
         logger.error('Setup Failed', { error })
         process.exit(1)
