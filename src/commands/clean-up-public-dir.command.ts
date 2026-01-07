@@ -1,6 +1,6 @@
 import { readdir, unlink } from 'node:fs/promises'
 import { join } from 'node:path'
-import { isNodeError } from '../lib/helpers'
+import { fileExists } from '../lib/helpers'
 import { logger as _logger } from '../lib/logger'
 
 const logger = _logger.withTag('cleanup-public')
@@ -11,6 +11,12 @@ const logger = _logger.withTag('cleanup-public')
  */
 export async function cleanUpPublicDir({ cwd }: { cwd: string }): Promise<void> {
     const publicDir = join(cwd, 'public')
+
+    // Check if public directory exists
+    if (!(await fileExists(publicDir))) {
+        logger.info('Public directory does not exist')
+        return
+    }
 
     try {
         logger.info('Removing default SVG files from public directory')
@@ -39,10 +45,6 @@ export async function cleanUpPublicDir({ cwd }: { cwd: string }): Promise<void> 
             logger.warn(`Failed to remove ${failed} SVG file(s)`)
         }
     } catch (error) {
-        if (isNodeError(error) && error.code === 'ENOENT') {
-            logger.info('Public directory does not exist')
-            return
-        }
         logger.warn('Failed to clean up public directory', { error })
     }
 }

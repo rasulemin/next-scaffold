@@ -1,6 +1,6 @@
-import { access, writeFile } from 'node:fs/promises'
+import { writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
-import { isNodeError } from '../lib/helpers'
+import { fileExists } from '../lib/helpers'
 import { logger as _logger } from '../lib/logger'
 
 const logger = _logger.withTag('update-home-page')
@@ -20,15 +20,11 @@ async function _findHomePagePath(cwd: string): Promise<string | null> {
     for (const path of possiblePaths) {
         const fullPath = join(cwd, path)
         try {
-            await access(fullPath)
-            logger.debug(`Found home page at: ${path}`)
-            return fullPath
-        } catch (error) {
-            if (isNodeError(error) && error.code === 'ENOENT') {
-                // File doesn't exist, try next
-                continue
+            if (await fileExists(fullPath)) {
+                logger.debug(`Found home page at: ${path}`)
+                return fullPath
             }
-            // Other errors, log and try next
+        } catch (error) {
             logger.error(`Error accessing ${path}:`, { error })
             continue
         }

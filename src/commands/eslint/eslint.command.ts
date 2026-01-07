@@ -1,9 +1,9 @@
 import { detect, PM } from 'detect-package-manager'
 import { execa } from 'execa'
-import { copyFile, mkdir, unlink } from 'node:fs/promises'
+import { copyFile, mkdir } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { isNodeError } from '../../lib/helpers'
+import { isNodeError, tryDeleteFile } from '../../lib/helpers'
 import { logger as _logger } from '../../lib/logger'
 import { updatePackageJson } from '../../lib/package-json'
 
@@ -53,17 +53,10 @@ async function _deleteExistingConfigs({ cwd }: { cwd: string }): Promise<void> {
 
     for (const ext of CONFIG.possibleConfigExtensions) {
         const configPath = join(cwd, `eslint.config.${ext}`)
-        try {
-            await unlink(configPath)
+        const deleted = await tryDeleteFile(configPath)
+        if (deleted) {
             logger.info(`Deleted existing eslint.config.${ext}`)
             deletedCount++
-        } catch (error) {
-            if (isNodeError(error) && error.code === 'ENOENT') {
-                // File doesn't exist, skip
-                continue
-            }
-            // Other errors should be thrown
-            throw new Error(`Failed to delete eslint.config.${ext}`, { cause: error })
         }
     }
 

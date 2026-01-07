@@ -1,42 +1,51 @@
 import { detect, PM } from 'detect-package-manager'
 import { execa } from 'execa'
-import { constants, copyFile } from 'node:fs/promises'
+import { copyFile } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { isNodeError } from '../../lib/helpers'
+import { fileExists } from '../../lib/helpers'
 import { logger as _logger } from '../../lib/logger'
 import { hasPackage, readPackageJson, updatePackageJson } from '../../lib/package-json'
 
 const logger = _logger.withTag('prettier-command')
 
 /**
- * Copies the sample Prettier config file to the project root.
+ * Copies Prettier config file to the project root.
+ * Uses custom config if provided, otherwise uses built-in .prettierrc
  * Skips if a config file already exists.
  */
-async function _copyConfigFile({ cwd }: { cwd: string }): Promise<void> {
-    // TODO: Stage 1: Use sample config file
-    // TODO: Stage 2: Read config from project settings/config
-    const __filename = fileURLToPath(import.meta.url)
-    const __dirname = dirname(__filename)
-    const sampleConfigFilename = 'config-sample.json'
-    const sampleConfigPath = join(__dirname, sampleConfigFilename)
+async function _copyConfigFile({
+    cwd,
+    customConfigPath,
+}: {
+    cwd: string
+    customConfigPath?: string
+}): Promise<void> {
+    const targetConfigPath = join(cwd, '.prettierrc')
 
-    const configPath = join(cwd, '.prettierrc') // use .json extension?
-    logger.debug(`Prettier config path: ${configPath}`)
+    // Check if config already exists
+    if (await fileExists(targetConfigPath)) {
+        logger.info('Prettier config file already exists')
+        return
+    }
 
+    // Determine source config path
+    let sourceConfigPath: string
+    if (customConfigPath) {
+        sourceConfigPath = customConfigPath
+        logger.info(`Using custom Prettier config from: ${customConfigPath}`)
+    } else {
+        const __filename = fileURLToPath(import.meta.url)
+        const __dirname = dirname(__filename)
+        sourceConfigPath = join(__dirname, '.prettierrc')
+        logger.info('Using built-in Prettier config')
+    }
+
+    // Copy config file
     try {
-        await copyFile(
-            sampleConfigPath,
-            configPath,
-            // fail if the file already exists
-            constants.COPYFILE_EXCL,
-        )
+        await copyFile(sourceConfigPath, targetConfigPath)
         logger.success('Prettier config file created')
     } catch (error) {
-        if (isNodeError(error) && error.code === 'EEXIST') {
-            logger.info('Prettier config file already exists')
-            return
-        }
         throw new Error('Failed to create Prettier config file', { cause: error })
     }
 }
@@ -131,9 +140,15 @@ async function _formatCodebase({
 /**
  * Main function to set up Prettier in a Next.js project.
  */
-export async function setupPrettier({ cwd }: { cwd: string }): Promise<void> {
+export async function setupPrettier({
+    cwd,
+    prettierConfigPath,
+}: {
+    cwd: string
+    prettierConfigPath?: string
+}): Promise<void> {
     logger.info('Setting up Prettier')
-    await _copyConfigFile({ cwd })
+    await _copyConfigFile({ cwd, customConfigPath: prettierConfigPath })
     const pm = await detect({ cwd })
     await _ensurePrettierInstalled({ cwd, packageManager: pm })
     await _addFormatScriptToPackageJson({ cwd })

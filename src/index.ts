@@ -1,16 +1,26 @@
-import { access } from 'node:fs/promises'
+import { program } from 'commander'
 import { join } from 'node:path'
 import { ensureNextJsProject } from './actions/ensure-nextjs-project'
+import { validatePrettierConfig } from './actions/validate-prettier-config'
 import { cleanUpPublicDir } from './commands/clean-up-public-dir.command'
 import { setupEslint } from './commands/eslint/eslint.command'
 import { setupPrettier } from './commands/prettier/prettier.command'
 import { updateHomePage } from './commands/update-home-page'
+import { fileExists } from './lib/helpers'
 import { logger } from './lib/logger'
 import { warningPrompt } from './lib/warning-prompt'
 
 const nextJsProjectPathForTesting = process.env.NEXTJS_PROJECT_PATH || '.'
 
-async function main() {
+type Options = {
+    skipEslint?: boolean
+    skipPrettier?: boolean
+    skipCleanup?: boolean
+    skipHomepage?: boolean
+    prettierConfig?: string
+}
+
+async function main(options: Options) {
     const shouldRun = await warningPrompt()
     if (!shouldRun) {
         logger.info('Phew... That was close!')
@@ -18,26 +28,66 @@ async function main() {
     }
 
     const cwd = join(process.cwd(), nextJsProjectPathForTesting)
-    const cwdExists = await access(cwd)
-        .then(() => true)
-        .catch(() => false)
-    if (!cwdExists) {
+    if (!(await fileExists(cwd))) {
         logger.error(`Specified cwd is not a valid directory: ${cwd}`)
         process.exit(1)
     }
 
     logger.info(`Working in directory: ${cwd}`)
 
+    // Validate Prettier config if provided
+    if (options.prettierConfig) {
+        try {
+            await validatePrettierConfig({ configPath: options.prettierConfig })
+        } catch (error) {
+            logger.error('Invalid or missing Prettier config file', { error })
+            process.exit(1)
+        }
+    }
+
     try {
         await ensureNextJsProject({ cwd })
-        await setupPrettier({ cwd })
-        await cleanUpPublicDir({ cwd })
-        await setupEslint({ cwd })
-        await updateHomePage({ cwd })
+
+        if (!options.skipPrettier) {
+            await setupPrettier({ cwd, prettierConfigPath: options.prettierConfig })
+        } else {
+            logger.info('Skipping Prettier setup')
+        }
+
+        if (!options.skipCleanup) {
+            await cleanUpPublicDir({ cwd })
+        } else {
+            logger.info('Skipping public directory cleanup')
+        }
+
+        if (!options.skipEslint) {
+            await setupEslint({ cwd })
+        } else {
+            logger.info('Skipping ESLint setup')
+        }
+
+        if (!options.skipHomepage) {
+            await updateHomePage({ cwd })
+        } else {
+            logger.info('Skipping homepage update')
+        }
+
+        logger.success('✨ Setup complete!')
     } catch (error) {
         logger.error('Setup Failed', { error })
         process.exit(1)
     }
 }
 
-void main()
+program
+    .name('next-scaffold')
+    .description('A scaffolding tool for fresh Next.js projects')
+    .version('1.0.0')
+    .option('--skip-eslint', 'Skip ESLint setup')
+    .option('--skip-prettier', 'Skip Prettier setup')
+    .option('--skip-cleanup', 'Skip public directory cleanup')
+    .option('--skip-homepage', 'Skip homepage update')
+    .option('--prettier-config <path>', 'Path to custom Prettier config file')
+    .action(main)
+
+program.parse()
