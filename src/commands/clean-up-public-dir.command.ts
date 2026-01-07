@@ -1,8 +1,7 @@
 import { readdir, unlink } from 'node:fs/promises'
 import { join } from 'node:path'
-import { logger as _logger } from '../lib/logger'
 import { isNodeError } from '../lib/helpers'
-import { confirmPrompt } from '../lib/prompt'
+import { logger as _logger } from '../lib/logger'
 
 const logger = _logger.withTag('cleanup-public')
 
@@ -12,12 +11,6 @@ const logger = _logger.withTag('cleanup-public')
  */
 export async function cleanUpPublicDir({ cwd }: { cwd: string }): Promise<void> {
     const publicDir = join(cwd, 'public')
-
-    const shouldCleanup = await confirmPrompt('Remove default SVG files from public dir?')
-    if (!shouldCleanup) {
-        logger.info('Skipping removal of SVG files from public dir')
-        return
-    }
 
     try {
         logger.info('Removing default SVG files from public directory')

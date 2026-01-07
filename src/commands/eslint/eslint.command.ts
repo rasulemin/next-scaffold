@@ -6,7 +6,6 @@ import { fileURLToPath } from 'node:url'
 import { isNodeError } from '../../lib/helpers'
 import { logger as _logger } from '../../lib/logger'
 import { updatePackageJson } from '../../lib/package-json'
-import { confirmPrompt } from '../../lib/prompt'
 
 const logger = _logger.withTag('setup-eslint')
 
@@ -143,15 +142,6 @@ async function _runLintFix({
     packageManager: PM
 }): Promise<void> {
     try {
-        const shouldFix = await confirmPrompt('Run ESLint --fix on the entire codebase now?')
-
-        if (!shouldFix) {
-            logger.info(
-                `Skipping ESLint fix. Run \`${CONFIG.lintFixScriptName}\` script manually when ready.`,
-            )
-            return
-        }
-
         logger.info('Running ESLint --fix...')
         await execa(packageManager, ['run', CONFIG.lintFixScriptName], { cwd, stdio: 'inherit' })
         logger.success('Codebase linted and fixed')
@@ -191,12 +181,6 @@ async function _runFormatter({
 }
 
 export async function setupEslint({ cwd }: { cwd: string }): Promise<void> {
-    const shouldSetup = await confirmPrompt('Setup ESLint?')
-    if (!shouldSetup) {
-        logger.info('Skipping ESLint setup')
-        return
-    }
-
     const packageManager = await detect({ cwd })
 
     // 1. Install deps

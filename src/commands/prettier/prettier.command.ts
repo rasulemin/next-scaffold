@@ -6,7 +6,6 @@ import { fileURLToPath } from 'node:url'
 import { isNodeError } from '../../lib/helpers'
 import { logger as _logger } from '../../lib/logger'
 import { hasPackage, readPackageJson, updatePackageJson } from '../../lib/package-json'
-import { confirmPrompt } from '../../lib/prompt'
 
 const logger = _logger.withTag('prettier-command')
 
@@ -120,15 +119,6 @@ async function _formatCodebase({
     packageManager: PM
 }): Promise<void> {
     try {
-        const shouldFormat = await confirmPrompt('Format the entire codebase now?')
-
-        if (!shouldFormat) {
-            logger.info(
-                'Skipping codebase formatting. Run the `format` script manually when ready.',
-            )
-            return
-        }
-
         logger.info('Formatting codebase...')
         await execa(packageManager, ['run', 'format'], { cwd, stdio: 'inherit' })
         logger.success('Codebase formatted')

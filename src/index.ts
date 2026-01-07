@@ -5,10 +5,17 @@ import { cleanUpPublicDir } from './commands/clean-up-public-dir.command'
 import { setupEslint } from './commands/eslint/eslint.command'
 import { setupPrettier } from './commands/prettier/prettier.command'
 import { logger } from './lib/logger'
+import { warningPrompt } from './lib/warning-prompt'
 
 const nextJsProjectPathForTesting = process.env.NEXTJS_PROJECT_PATH || '.'
 
 async function main() {
+    const shouldRun = await warningPrompt()
+    if (!shouldRun) {
+        logger.info('Phew... That was close!')
+        return
+    }
+
     const cwd = join(process.cwd(), nextJsProjectPathForTesting)
     const cwdExists = await access(cwd)
         .then(() => true)
@@ -21,9 +28,9 @@ async function main() {
     logger.info(`Working in directory: ${cwd}`)
 
     try {
-        // await ensureNextJsProject({ cwd })
-        // await setupPrettier({ cwd })
-        // await cleanUpPublicDir({ cwd })
+        await ensureNextJsProject({ cwd })
+        await setupPrettier({ cwd })
+        await cleanUpPublicDir({ cwd })
         await setupEslint({ cwd })
     } catch (error) {
         logger.error('Setup Failed', { error })
