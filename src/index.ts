@@ -48,10 +48,10 @@ async function main(options: Options) {
     try {
         await ensureNextJsProject({ cwd })
 
-        if (!options.skipPrettier) {
-            await setupPrettier({ cwd, prettierConfigPath: options.prettierConfig })
+        if (!options.skipEslint) {
+            await setupEslint({ cwd })
         } else {
-            logger.info('Skipping Prettier setup')
+            logger.info('Skipping ESLint setup')
         }
 
         if (!options.skipCleanup) {
@@ -60,16 +60,16 @@ async function main(options: Options) {
             logger.info('Skipping public directory cleanup')
         }
 
-        if (!options.skipEslint) {
-            await setupEslint({ cwd })
-        } else {
-            logger.info('Skipping ESLint setup')
-        }
-
         if (!options.skipHomepage) {
             await updateHomePage({ cwd })
         } else {
             logger.info('Skipping homepage update')
+        }
+
+        if (!options.skipPrettier) {
+            await setupPrettier({ cwd, prettierConfigPath: options.prettierConfig })
+        } else {
+            logger.info('Skipping Prettier setup')
         }
 
         logger.success('✨ Setup complete!')

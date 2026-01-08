@@ -69,7 +69,6 @@ async function _deleteExistingConfigs({ cwd }: { cwd: string }): Promise<void> {
  * Copies the sample ESLint config file to the project root.
  */
 async function _copyConfigFile({ cwd }: { cwd: string }): Promise<void> {
-    // TODO: Add ability to configure the config file
     const __filename = fileURLToPath(import.meta.url)
     const __dirname = dirname(__filename)
     const sampleConfigPath = join(__dirname, 'eslint.config.mjs')
@@ -147,36 +146,9 @@ async function _runLintFix({
 }
 
 /**
- * Formats the newly created/copied file (just in case the formatting is off).
- */
-async function _formatFile({
-    cwd,
-    packageManager,
-    filePath,
-}: {
-    cwd: string
-    packageManager: PM
-    filePath: string
-}): Promise<void> {
-    try {
-        logger.info(`Formatting ${filePath}...`)
-        await execa(packageManager, ['exec', 'prettier', '--write', filePath], {
-            cwd,
-            stdio: 'pipe',
-        })
-        logger.success(`${filePath} formatted`)
-    } catch (error) {
-        // Non-critical: just log a warning if formatting fails
-        logger.warn(`Failed to format ${filePath}. You can format it manually.`)
-        logger.debug('Formatting error:', { error })
-    }
-}
-
-/**
  * Copies VSCode settings.json with recommended ESLint configuration.
  */
 async function _copyVscodeSettings({ cwd }: { cwd: string }): Promise<void> {
-    // TODO: REUSE/ABSTRACTAWAY
     const __filename = fileURLToPath(import.meta.url)
     const __dirname = dirname(__filename)
     const sourceSettingsPath = join(__dirname, '.vscode', 'settings.json')
@@ -211,22 +183,13 @@ export async function setupEslint({ cwd }: { cwd: string }): Promise<void> {
 
     // 3. Copy the config file to the project root
     await _copyConfigFile({ cwd })
-    const configFileName = `eslint.config.${CONFIG.defaultConfigExtension}`
-    const configPath = join(cwd, configFileName)
-    await _formatFile({ cwd, packageManager, filePath: configPath })
 
     // 4. Add `lint:fix` script to package.json
     await _addLintFixScript({ cwd })
 
-    // 5. Run the `lint:fix` script
-    await _runLintFix({ cwd, packageManager })
-
-    // 6. Copy vscode settings
+    // 5. Copy vscode settings
     await _copyVscodeSettings({ cwd })
-    const vscodeSettingsPath = join(cwd, '.vscode/settings.json')
-    await _formatFile({ cwd, packageManager, filePath: vscodeSettingsPath })
 
-    // 7. Format package.json file (in case it was modified)
-    const packageJsonPath = join(cwd, 'package.json')
-    await _formatFile({ cwd, packageManager, filePath: packageJsonPath })
+    // 6. Run the `lint:fix` script
+    await _runLintFix({ cwd, packageManager })
 }
