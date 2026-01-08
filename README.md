@@ -6,7 +6,7 @@ As a freelance developer who builds a lot of SaaS MVPs, I start a lot of Next.js
 
 <!-- YouTube thumbnail generated with this tool: https://t.cuts.so/github/video -->
 
-[![Demo Video](./assets/demo-thumbnail.png)](https://youtu.be/Vgocyvnhmog)
+[![Demo Video](https://raw.githubusercontent.com/rasulemin/nextjs-scaffold/main/assets/demo-thumbnail.png)](https://youtu.be/Vgocyvnhmog)
 
 _Click the image above to watch the demo video_
 
