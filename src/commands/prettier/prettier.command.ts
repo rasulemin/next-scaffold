@@ -16,7 +16,7 @@ const logger = _logger.withTag('prettier-command')
 /**
  * Copies Prettier config file to the project root.
  * Uses custom config if provided, otherwise uses built-in .prettierrc
- * Skips if a config file already exists.
+ * Skips if a config file already exists (unless custom config is provided).
  */
 async function _copyConfigFile({
     cwd,
@@ -26,11 +26,19 @@ async function _copyConfigFile({
     customConfigPath?: string
 }): Promise<void> {
     const targetConfigPath = join(cwd, '.prettierrc')
+    const configExists = await fileExists(targetConfigPath)
 
-    // Check if config already exists
-    if (await fileExists(targetConfigPath)) {
+    // If config already exists and no custom config provided, skip
+    if (configExists && !customConfigPath) {
         logger.info('Prettier config file already exists')
         return
+    }
+
+    // If config exists but user provided custom config, warn about overwriting
+    if (configExists && customConfigPath) {
+        logger.warn(
+            'Prettier config file already exists, overwriting with custom config',
+        )
     }
 
     // Determine source config path
@@ -165,10 +173,21 @@ async function _formatCodebase({
 export async function setupPrettier({
     cwd,
     prettierConfigPath,
+    dryRun = false,
 }: {
     cwd: string
     prettierConfigPath?: string
+    dryRun?: boolean
 }): Promise<void> {
+    if (dryRun) {
+        logger.info('Would set up Prettier:')
+        logger.info('  - Copy Prettier config file')
+        logger.info('  - Install Prettier (if not installed)')
+        logger.info('  - Add format script to package.json')
+        logger.info('  - Format entire codebase')
+        return
+    }
+
     logger.info('Setting up Prettier')
     await _copyConfigFile({ cwd, customConfigPath: prettierConfigPath })
     const pm = await detect({ cwd })
