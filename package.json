@@ -1,11 +1,11 @@
 {
-    "name": "next-scaffold",
+    "name": "nextjs-scaffold",
     "version": "1.0.0",
     "description": "A scaffolding tool for Next.js",
     "type": "module",
     "main": "./dist/index.js",
     "bin": {
-        "next-scaffold": "./dist/index.js"
+        "nextjs-scaffold": "./dist/index.js"
     },
     "files": [
         "dist"
@@ -19,7 +19,7 @@
     },
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/rasulemin/next-scaffold.git"
+        "url": "git+https://github.com/rasulemin/nextjs-scaffold.git"
     },
     "keywords": [
         "nextjs",
@@ -30,9 +30,9 @@
     "author": "Rasul Emin",
     "license": "MIT",
     "bugs": {
-        "url": "https://github.com/rasulemin/next-scaffold/issues"
+        "url": "https://github.com/rasulemin/nextjs-scaffold/issues"
     },
-    "homepage": "https://github.com/rasulemin/next-scaffold#readme",
+    "homepage": "https://github.com/rasulemin/nextjs-scaffold#readme",
     "devDependencies": {
         "@types/node": "^22.10.5",
         "prettier": "^3.7.4",

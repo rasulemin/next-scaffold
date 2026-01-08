@@ -1,4 +1,4 @@
-# next-scaffold
+# nextjs-scaffold
 
 As a freelance developer who builds a lot of SaaS MVPs, I start a lot of Next.js projects and found myself doing the same setup steps over and over. So I built this quick setup tool for myself. If there's interest, I'm happy to make it more flexible - feel free to open an issue or send a PR!
 
@@ -17,9 +17,9 @@ When you run this tool, it automatically:
 ## Installation
 
 ```bash
-npm install -g next-scaffold
+npm install -g nextjs-scaffold
 # or
-pnpm add -g next-scaffold
+pnpm add -g nextjs-scaffold
 ```
 
 ## Usage
@@ -27,7 +27,7 @@ pnpm add -g next-scaffold
 Navigate to your freshly created Next.js project and run:
 
 ```bash
-next-scaffold
+npx nextjs-scaffold
 ```
 
 The tool will ask for confirmation before making any changes. If you're not sure, you can press Enter to cancel.
@@ -37,24 +37,24 @@ The tool will ask for confirmation before making any changes. If you're not sure
 You can skip specific steps if you want:
 
 ```bash
-next-scaffold --skip-prettier            # Skip Prettier setup
-next-scaffold --skip-eslint              # Skip ESLint setup
-next-scaffold --skip-cleanup             # Skip public directory cleanup
-next-scaffold --skip-homepage            # Skip homepage update
-next-scaffold --skip-font-change         # Skip font change (Geist to Inter)
-next-scaffold --skip-container-utility   # Skip adding container utility to globals.css
+npx nextjs-scaffold --skip-prettier            # Skip Prettier setup
+npx nextjs-scaffold --skip-eslint              # Skip ESLint setup
+npx nextjs-scaffold --skip-cleanup             # Skip public directory cleanup
+npx nextjs-scaffold --skip-homepage            # Skip homepage update
+npx nextjs-scaffold --skip-font-change         # Skip font change (Geist to Inter)
+npx nextjs-scaffold --skip-container-utility   # Skip adding container utility to globals.css
 ```
 
 Use your own Prettier config:
 
 ```bash
-next-scaffold --prettier-config ./my-prettier-config.json
+npx nextjs-scaffold --prettier-config ./my-prettier-config.json
 ```
 
 Combine multiple options:
 
 ```bash
-next-scaffold --skip-cleanup --skip-homepage --skip-font-change
+npx nextjs-scaffold --skip-cleanup --skip-homepage --skip-font-change
 ```
 
 ## Development
@@ -69,6 +69,10 @@ pnpm dev
 # Build for production
 pnpm build
 ```
+
+## TODO
+
+- [ ] Logger
 
 ## License
 

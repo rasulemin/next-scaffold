@@ -96,7 +96,7 @@ async function main(options: Options) {
 }
 
 program
-    .name('next-scaffold')
+    .name('nextjs-scaffold')
     .description('A scaffolding tool for fresh Next.js projects')
     .version('1.0.0')
     .option('--skip-eslint', 'Skip ESLint setup')
