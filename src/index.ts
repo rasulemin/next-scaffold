@@ -2,12 +2,14 @@ import { program } from 'commander'
 import { join } from 'node:path'
 import { ensureNextJsProject } from './actions/ensure-nextjs-project'
 import { validatePrettierConfig } from './actions/validate-prettier-config'
-import { cleanUpPublicDir } from './commands/clean-up-public-dir.command'
-import { setupEslint } from './commands/eslint/eslint.command'
-import { setupPrettier } from './commands/prettier/prettier.command'
-import { changeFont } from './commands/change-font.command'
-import { updateHomePage } from './commands/update-home-page.command'
-import { addContainerUtility } from './commands/add-container-utility.command'
+import {
+    setupEslint,
+    setupPrettier,
+    cleanUpPublicDir,
+    changeFont,
+    updateHomePage,
+    addContainerUtility,
+} from './commands'
 import { fileExists } from './lib/helpers'
 import { logger } from './lib/logger'
 import { warningPrompt } from './lib/warning-prompt'

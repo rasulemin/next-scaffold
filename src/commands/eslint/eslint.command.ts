@@ -1,11 +1,11 @@
 import { detect, PM } from 'detect-package-manager'
 import { execa } from 'execa'
-import { copyFile, mkdir } from 'node:fs/promises'
-import { dirname, join } from 'node:path'
-import { fileURLToPath } from 'node:url'
+import { mkdir, writeFile } from 'node:fs/promises'
+import { join } from 'node:path'
 import { isNodeError, tryDeleteFile } from '../../lib/helpers'
 import { logger as _logger } from '../../lib/logger'
 import { updatePackageJsonScripts } from '../../lib/package-json'
+import { ESLINT_CONFIG_TEMPLATE, VSCODE_SETTINGS_TEMPLATE } from './templates'
 
 const logger = _logger.withTag('setup-eslint')
 
@@ -66,18 +66,14 @@ async function _deleteExistingConfigs({ cwd }: { cwd: string }): Promise<void> {
 }
 
 /**
- * Copies the sample ESLint config file to the project root.
+ * Creates the ESLint config file in the project root.
  */
-async function _copyConfigFile({ cwd }: { cwd: string }): Promise<void> {
-    const __filename = fileURLToPath(import.meta.url)
-    const __dirname = dirname(__filename)
-    const sampleConfigPath = join(__dirname, 'eslint.config.mjs')
-
+async function _createConfigFile({ cwd }: { cwd: string }): Promise<void> {
     const targetConfigFileName = `eslint.config.${CONFIG.defaultConfigExtension}`
     const targetConfigPath = join(cwd, targetConfigFileName)
 
     try {
-        await copyFile(sampleConfigPath, targetConfigPath)
+        await writeFile(targetConfigPath, ESLINT_CONFIG_TEMPLATE, 'utf-8')
         logger.success(`ESLint config file created: ${targetConfigFileName}`)
     } catch (error) {
         throw new Error('Failed to create ESLint config file', { cause: error })
@@ -146,29 +142,26 @@ async function _runLintFix({
 }
 
 /**
- * Copies VSCode settings.json with recommended ESLint configuration.
+ * Creates VSCode settings.json with recommended ESLint configuration.
  */
-async function _copyVscodeSettings({ cwd }: { cwd: string }): Promise<void> {
-    const __filename = fileURLToPath(import.meta.url)
-    const __dirname = dirname(__filename)
-    const sourceSettingsPath = join(__dirname, '.vscode', 'settings.json')
+async function _createVscodeSettings({ cwd }: { cwd: string }): Promise<void> {
     const targetVscodeDir = join(cwd, '.vscode')
     const targetSettingsPath = join(targetVscodeDir, 'settings.json')
 
     try {
-        logger.info('Copying VSCode settings...')
+        logger.info('Creating VSCode settings...')
         // Create .vscode directory if it doesn't exist
         await mkdir(targetVscodeDir, { recursive: true })
-        await copyFile(sourceSettingsPath, targetSettingsPath)
+        await writeFile(targetSettingsPath, VSCODE_SETTINGS_TEMPLATE, 'utf-8')
         logger.success('VSCode settings created with ESLint configuration')
     } catch (error) {
         if (isNodeError(error) && error.code === 'EEXIST') {
             logger.info('VSCode settings already exist, skipping')
             return
         }
-        // Non-critical: just log a warning if copying fails
-        logger.warn('Failed to copy VSCode settings. You can set it up manually.')
-        logger.debug('Copy error:', { error })
+        // Non-critical: just log a warning if creation fails
+        logger.warn('Failed to create VSCode settings. You can set it up manually.')
+        logger.debug('Creation error:', { error })
     }
 }
 
@@ -181,14 +174,14 @@ export async function setupEslint({ cwd }: { cwd: string }): Promise<void> {
     // 2. Delete any existing config files
     await _deleteExistingConfigs({ cwd })
 
-    // 3. Copy the config file to the project root
-    await _copyConfigFile({ cwd })
+    // 3. Create the config file in the project root
+    await _createConfigFile({ cwd })
 
     // 4. Add `lint:fix` script to package.json
     await _addLintFixScript({ cwd })
 
-    // 5. Copy vscode settings
-    await _copyVscodeSettings({ cwd })
+    // 5. Create vscode settings
+    await _createVscodeSettings({ cwd })
 
     // 6. Run the `lint:fix` script
     await _runLintFix({ cwd, packageManager })

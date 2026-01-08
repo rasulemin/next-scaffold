@@ -1,24 +1,26 @@
 import { detect, PM } from 'detect-package-manager'
 import { execa } from 'execa'
-import { copyFile } from 'node:fs/promises'
-import { dirname, join } from 'node:path'
-import { fileURLToPath } from 'node:url'
-import { fileExists } from '../../lib/helpers'
-import { logger as _logger } from '../../lib/logger'
-import {
-    hasPackage,
-    readPackageJson,
-    updatePackageJsonScripts,
-} from '../../lib/package-json'
+import { copyFile, writeFile } from 'node:fs/promises'
+import { join } from 'node:path'
+import { fileExists } from '../lib/helpers'
+import { logger as _logger } from '../lib/logger'
+import { hasPackage, readPackageJson, updatePackageJsonScripts } from '../lib/package-json'
 
 const logger = _logger.withTag('prettier-command')
 
+const DEFAULT_PRETTIER_CONFIG = `{
+    "singleQuote": true,
+    "semi": false,
+    "tabWidth": 4
+}
+`
+
 /**
- * Copies Prettier config file to the project root.
- * Uses custom config if provided, otherwise uses built-in .prettierrc
+ * Creates Prettier config file in the project root.
+ * Uses custom config if provided, otherwise uses built-in default config.
  * Skips if a config file already exists (unless custom config is provided).
  */
-async function _copyConfigFile({
+async function _createConfigFile({
     cwd,
     customConfigPath,
 }: {
@@ -36,26 +38,19 @@ async function _copyConfigFile({
 
     // If config exists but user provided custom config, warn about overwriting
     if (configExists && customConfigPath) {
-        logger.warn(
-            'Prettier config file already exists, overwriting with custom config',
-        )
+        logger.warn('Prettier config file already exists, overwriting with custom config')
     }
 
-    // Determine source config path
-    let sourceConfigPath: string
-    if (customConfigPath) {
-        sourceConfigPath = customConfigPath
-        logger.info(`Using custom Prettier config from: ${customConfigPath}`)
-    } else {
-        const __filename = fileURLToPath(import.meta.url)
-        const __dirname = dirname(__filename)
-        sourceConfigPath = join(__dirname, '.prettierrc')
-        logger.info('Using built-in Prettier config')
-    }
-
-    // Copy config file
     try {
-        await copyFile(sourceConfigPath, targetConfigPath)
+        if (customConfigPath) {
+            // Copy custom config file from user-provided path
+            logger.info(`Using custom Prettier config from: ${customConfigPath}`)
+            await copyFile(customConfigPath, targetConfigPath)
+        } else {
+            // Write default config from template
+            logger.info('Using built-in Prettier config')
+            await writeFile(targetConfigPath, DEFAULT_PRETTIER_CONFIG, 'utf-8')
+        }
         logger.success('Prettier config file created')
     } catch (error) {
         throw new Error('Failed to create Prettier config file', {
@@ -103,11 +98,7 @@ async function _ensurePrettierInstalled({
  * Adds a "format" script to package.json if it doesn't exist.
  * Skips if a format script is already configured.
  */
-async function _addFormatScriptToPackageJson({
-    cwd,
-}: {
-    cwd: string
-}): Promise<void> {
+async function _addFormatScriptToPackageJson({ cwd }: { cwd: string }): Promise<void> {
     try {
         let freshlyAdded = false
         await updatePackageJsonScripts(cwd, (scripts) => {
@@ -161,9 +152,7 @@ async function _formatCodebase({
         logger.success('Codebase formatted')
     } catch (error) {
         logger.error('Formatting error occurred', { error })
-        logger.warn(
-            'Failed to format codebase. You can run the `format` script manually.',
-        )
+        logger.warn('Failed to format codebase. You can run the `format` script manually.')
     }
 }
 
@@ -189,7 +178,7 @@ export async function setupPrettier({
     }
 
     logger.info('Setting up Prettier')
-    await _copyConfigFile({ cwd, customConfigPath: prettierConfigPath })
+    await _createConfigFile({ cwd, customConfigPath: prettierConfigPath })
     const pm = await detect({ cwd })
     await _ensurePrettierInstalled({ cwd, packageManager: pm })
     await _addFormatScriptToPackageJson({ cwd })
