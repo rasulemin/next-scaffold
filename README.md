@@ -2,6 +2,14 @@
 
 As a freelance developer who builds a lot of SaaS MVPs, I start a lot of Next.js projects and found myself doing the same setup steps over and over. So I built this quick setup tool for myself. If there's interest, I'm happy to make it more flexible - feel free to open an issue or send a PR!
 
+## Demo
+
+<!-- YouTube thumbnail generated with this tool: https://t.cuts.so/github/video -->
+
+[![Demo Video](./assets/demo-thumbnail.png)](https://youtu.be/Vgocyvnhmog)
+
+_Click the image above to watch the demo video_
+
 ## What it does
 
 When you run this tool, it automatically:
